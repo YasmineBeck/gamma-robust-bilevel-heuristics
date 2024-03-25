@@ -144,4 +144,4 @@ Solves a knapsack interdiction problem of the nominal type using a branch-and-cu
 Primal heuristics for mixed-integer, linear, and Gamma-robust min-max problems on the example of bilevel knapsack interdiction problems. The method exploits the solution of a linear number of interdiction problems of the nominal type. For the solution of the deterministic problems, two options are available: a branch-and-cut approach based on Fischetti et al. (2019) or the combinatorial approach by Fukasawa and Weninger (2023). In addition, two variants of the heuristic are implemented: one that alternates between solving bilevel and single-level problems and one that solves all bilevel sub-problems first and, afterward, performs a correction step by solving single-level problems.
 
 **optimality_checker.py**  
-Class containing all necessary functions (compute upper bound, check ex-post conditions) to prove optimality of heuristically obtained solutions.
+Class containing all necessary functions (compute upper bound, check ex-post conditions) to prove optimality of heuristically obtained solutions to Gamma-robust min-max problems.
