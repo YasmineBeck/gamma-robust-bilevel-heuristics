@@ -7,7 +7,6 @@
 # by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
 
 # Global imports
-import logging
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
