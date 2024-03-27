@@ -101,7 +101,20 @@ Absolute values for the deviations in the objective function coefficients.
 
 Either _uncertainty_ or _deviations_ must be specified.
 
+# Counterexample
+As discussed in the paper, the main result by Bertsimas and Sim (2003) cannot be carried over to the bilevel setting. For the case of general mixed-integer, linear, and Gamma-robust bilevel problems, it may even be the case that none of the solutions to the deterministic bilevel sub-problems solved in Line 3 of Algorithm 3 in the paper is feasible for the Gamma-robust bilevel problem. We observe this behavior for the nominal instance of size `n = 40` given in [counterexample.txt](counterexample/counterexample.txt) with the uncertainty parameterization given by `uncertainty = 0.1` and `conservatism = 0.5`. The latter implies that Gamma takes a value of 20 and all lower-level objective function coefficients are equally perturbed by 10 percent of the nominal value. In the [counterexample](./counterexample) directory, we provide the numerical results for all deterministic bilevel sub-problems that need to be solved when applying the primal heuristic for Gamma-robust bilevel problems to this instance. For example, `counterexample_20.json` contains the numerical results for the bilevel sub-problem with sub-problem index 20. To verify that indeed none of the solutions to the deterministic bilevel sub-problems solved when applying the primal heuristic is Gamma-robust feasible, simply run
+
+`python3 check_counterexample.py`.
+
+Here, for each fixed leader's decision obtained from solving a bilevel sub-problem of the nominal type, all lower-level sub-problems are solved (cf. Lemma 1 of the paper) to determine whether the pair (x,y) that is output as a solution of the bilevel sub-problem is Gamma-robust feasible. Running the above script returns the message that there is a bilevel sub-problem for which the solution is Gamma-robust feasible or, otherwise, that no such bilevel sub-problem exists.
+
 # Contents
+**check_counterexample.py**  
+This script is used to verify that there may be instances for which none of the solutions to the general deterministic bilevel sub-problems is feasible for the overall Gamma-robust bilevel problem using a specific example; see Section 4 in the paper.
+
+**counterexample**  
+Directory containing the nominal instance data of the counterexample as well as the numerical results for the general deterministic bilevel sub-problems solved using our primal heuristic. The data is used to verify that there may be instances for which none of the solutions to the sub-problems is feasible for the overall Gamma-robust bilevel problem; see Section 4 in the paper.
+
 **combinatorial_approach.py**  
 Solve a bilevel knapsack interdiction problem using the combinatorial approach (bkpsolver) by Fukasawa and Weninger (2023). To install _bkpsolver_, follow the instructions at https://github.com/nwoeanhinnogaehr/bkpsolver.
 
