@@ -11,7 +11,6 @@ import argparse
 import gurobipy as gp
 from gurobipy import GRB
 import json
-import logging
 import numpy as np
 import os
 from time import time
