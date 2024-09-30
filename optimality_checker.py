@@ -1,22 +1,17 @@
 # This file is part of the code used for the computational study
 # in the paper
 #
-#     "Heuristic Methods for Mixed-Integer, Linear,
-#      and Gamma-Robust Bilevel Problems"
+#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
+#      Bilevel Problems"
 #
 # by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
 
 # Global imports
-import logging
 import numpy as np
 from time import time
 
 # Local imports
 from help_functions import solve_lower_level
-
-# Initialize logger.
-LOGGER = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 class OptimalityChecker:
     """
@@ -140,7 +135,6 @@ class OptimalityChecker:
                         
             # Update.
             if subprob_ub - self.tol < ub:
-                LOGGER.debug('Updating upper bound...')
                 ub = subprob_ub
                 sol = subprob_sol
                 best_subprob = self.subprobs[idx1]
@@ -204,7 +198,6 @@ class OptimalityChecker:
         # Check whether the leader plays the same decision in every
         # bilevel sub-problem. Return True in the positive case, and
         # False otherwise.
-        LOGGER.debug('Checking for same leader solutions...')
         for idx in range(1, len(sols)):
             if not all(abs(sol1 - sol2) < self.tol
                        for sol1, sol2 in zip(sols[0], sols[idx])):
@@ -215,7 +208,6 @@ class OptimalityChecker:
         # Check whether there is a leader decision that dominates all
         # sub-problem solutions. Return True in the positive case, and
         # False otherwise.
-        LOGGER.debug('Checking for dominating leader solution...')
         new_sol = sols[0].copy()
         dominating = True
         for idx in range(1, len(sols)):

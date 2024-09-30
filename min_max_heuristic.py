@@ -1,15 +1,14 @@
 # This file is part of the code used for the computational study
 # in the paper
 #
-#     "Heuristic Methods for Mixed-Integer, Linear,
-#      and Gamma-Robust Bilevel Problems"
+#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
+#      Bilevel Problems"
 #
 # by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
 
 # Global imports
 import argparse
 import json
-import logging
 import numpy as np
 import os
 import subprocess
@@ -21,11 +20,6 @@ from min_max_deterministic_model import DeterministicModel
 from help_functions import solve_lower_level
 from instance_data_builder import InstanceDataBuilder
 from optimality_checker import OptimalityChecker
-
-# Initialize logger.
-LOGGER = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
 
 class MinMaxHeuristic:
     """
@@ -132,7 +126,6 @@ class MinMaxHeuristic:
         # Eliminate items 1) due to negative (modified) profits and
         # 2) for which the associated weight exceeds the budget;
         # see Pisinger and Toth (1998).
-        LOGGER.debug('Entering presolve...')
         size = subprob_data['size']
         profits = subprob_data['profits']
         ll_weights = subprob_data['follower weights']
@@ -179,7 +172,6 @@ class MinMaxHeuristic:
         data_file, log_file, out_file = self.get_file_paths(subprob)
         if subprob_data['size'] < 1:
             # The problem has already been solved during presolve.
-            LOGGER.debug('Sub-problem has been solved during presolve.')
             results_dict = {
                 'objective': 0.0,
                 'leader decision': [0]*self.instance_dict['size'],
@@ -191,7 +183,6 @@ class MinMaxHeuristic:
         elif subprob_data['size'] == len(fix_leader):
             # The problem can be solved as a standard knapsack problem
             # since presolve fixed all variables of the leader to zero.
-            LOGGER.debug('Solving sub-problem as single-level problem...')
             profits = subprob_data['profits']
             weights = subprob_data['follower weights']
             budget = subprob_data['follower budget']
@@ -216,12 +207,11 @@ class MinMaxHeuristic:
                 # bkpsolver requires that the leader's weights do not exceed
                 # the leader's budget, which is violated.
                 # The solver option is changed to the branch-and-cut approach.
-                LOGGER.info('Requirements of bkp violated, using ic instead.')
+                print('Requirements of BKP violated, using IC instead.')
                 self.solver = 'ic'
                 data_file, log_file, out_file = self.get_file_paths(subprob)
                 
             if self.solver == 'bkp':
-                LOGGER.debug('Using bkpsolver...')
                 model = CombModel(
                     self.path_to_bkpsolver,
                     data_file,
@@ -230,7 +220,6 @@ class MinMaxHeuristic:
                 )
                 results_dict = model.run()
             else:
-                LOGGER.debug('Using branch-and-cut approach...')
                 model = DeterministicModel(subprob_data)
                 results_dict = model.solve()
 
@@ -325,7 +314,6 @@ class MinMaxHeuristic:
                 continue
             
             # Update the lower bound.
-            LOGGER.debug('Updating lower bound...')
             lb = max(lb, subprob_obj)
 
             # Terminate if the gap is closed.
@@ -354,7 +342,6 @@ class MinMaxHeuristic:
                 
                 # Update.
                 if subprob_ub - self.tol < ub:
-                    LOGGER.debug('Updating upper bound...')
                     ub = subprob_ub
                     sol = subprob_sol
                     best_subprob = subprob
@@ -381,7 +368,6 @@ class MinMaxHeuristic:
         ideal_single_level_time = sum(ideal_single_level_times)
 
         # Extract results.
-        LOGGER.debug('Extracting results...')
         results_dict = {}
         results_dict['runtime'] = runtime
         results_dict['ideal runtime']\
@@ -443,7 +429,6 @@ class MinMaxHeuristic:
 
         if objs:
             # Update the lower bound.
-            LOGGER.debug('Updating lower bound...')
             lb = max(objs)
 
             # Check for ex-post optimality and compute an upper bound.
@@ -458,7 +443,6 @@ class MinMaxHeuristic:
         runtime = time() - start_time
 
         # Extract results.
-        LOGGER.debug('Extracting results...')
         results_dict = {}
         results_dict['runtime'] = runtime
         bilevel_time, ideal_bilevel_time, nodes\
