@@ -142,8 +142,8 @@ Solves a generalized knapsack interdiction problem of the nominal type using a b
 **general_heuristic.py**  
 Primal heuristic for general mixed-integer, linear, and Gamma-robust bilevel problems on the example of generalized bilevel knapsack interdiction problems. The method exploits the solution of a linear number of bilevel problems of the nominal type.
 
-**greedy_interdiction.py**
-The _Greedy Interdiction_ heuristic proposed by Scott DeNegre in his PhD thesis (2011) applied to the Gamma-robust knapsack interdiction problem. The method determines a feasible interdiction policy in a greedy way, from which a valid upper bound for the optimal objective function value is obtained by solving the Gamma-robust lower-level problem. A lower bound is obtained from the high-point relaxation of the original interdiction problem.
+**greedy_interdiction.py**  
+The _Greedy Interdiction_ heuristic proposed by Scott DeNegre in his PhD thesis (2011) applied to the Gamma-robust knapsack interdiction problem. The method determines a feasible interdiction policy in a greedy way. A valid upper bound for the optimal objective function value is obtained by solving the Gamma-robust lower-level problem, whereas a valid lower bound is obtained by solving the high-point relaxation of the original interdiction problem.
 
 **help_functions.py**  
 Contains the following functions that are used in the presented branch-and-cut approaches for bilevel problems of the nominal type (see also the paper by Fischetti et al. (2019) for further details):
@@ -165,8 +165,8 @@ Solves a parameterized refinement problem to account for an optimistic follower.
 **instance_data_builder.py**  
 Takes a nominal (generalized) bilevel knapsack interdiction instance and returns a robustified instance based on the uncertainty parameterization given by _conservatism_ and _uncertainty_ or _deviations_.
 
-**iterate_heuristic.py**
-The ONE-SHOT and ITERATE heuristics presented in Fischetti et al. (2018) applied to the generalized Gamma-robust knapsack interdiction problem. The method computes a bilevel-feasible pair and a valid upper bound for the optimal objective function value. A lower bound is obtained by solving the high-point relaxation of the original bilevel problem.
+**iterate_heuristic.py**  
+The ONE-SHOT and ITERATE heuristics presented in Fischetti et al. (2018) applied to the generalized Gamma-robust knapsack interdiction problem. The method computes a bilevel-feasible pair and a valid upper bound for the optimal objective function value. A valid lower bound is obtained by solving the high-point relaxation of the original bilevel problem.
 
 **nominal-instance-data**  
 Contains all 280 nominal instances that are used for the computational study of the paper.
