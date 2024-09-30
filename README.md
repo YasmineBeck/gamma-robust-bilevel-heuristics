@@ -1,7 +1,7 @@
 # Introduction
 The repository contains the code accompanying the paper
 
-&emsp; _Heuristic Methods for Mixed-Integer, Linear, and Gamma-Robust Bilevel Problems_
+&emsp; _Heuristic Methods for Gamma-Robust Mixed-Integer Linear Bilevel Problems_
 
 by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024)
 (to appear).
@@ -13,7 +13,6 @@ Further, the following Python packages and modules are required:
 
 * argparse
 * json
-* logging
 * numpy
 * os
 * subprocess
@@ -56,6 +55,13 @@ The solver to use for the solution of the problems of the nominal type. Default 
 **--modify**  
 Use the modified variant of the heuristic in which all bilevel sub-problems are solved first (_True_) or use the variant that alternates between solving bilevel and single-level problems (_False_). Default is _False_.
 
+#### Benchmark approach:
+To apply the _Greedy Interdiction_ heuristic (cf. Algorithm 4.2 in the [PhD thesis by S. DeNegre, 2011](https://coral.ise.lehigh.edu/~ted/files/papers/ScottDeNegreDissertation11.pdf)) to the Gamma-robust knapsack interdiction problem, run
+
+`python3 greedy_interdiction.py --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json`
+
+As before, either _uncertainty_ or _deviations_ must be specified.
+
 <br/>  
 
 ### General Bilevel Problems
@@ -71,6 +77,15 @@ Same as for the min-max setting, see above.
 #### Optional arguments:
 **--refine**  
 Include a refinement step (_True_) to account for an optimistic follower or not (_False_). Default is _True_.
+
+#### Benchmark approaches:
+Run
+
+`python3 iterate_heuristic.py --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json`
+
+to apply the ITERATE heuristic presented in [Fischetti et al. (2018)](https://doi.org/10.1016/j.ejor.2017.11.043) to an instance of the generalized Gamma-robust knapsack interdiction problem.
+
+As before, either _uncertainty_ or _deviations_ must be specified. The default time limit is 3600s. You can change it using the optional argument `--time_limit TL`, where TL is given in seconds. To run the ONE-SHOT variant of the method, add the optional argument `--one_shot True`.
 
 # Instance Format
 Nominal instance data must be given in form of a dictionary.
@@ -127,6 +142,9 @@ Solves a generalized knapsack interdiction problem of the nominal type using a b
 **general_heuristic.py**  
 Primal heuristic for general mixed-integer, linear, and Gamma-robust bilevel problems on the example of generalized bilevel knapsack interdiction problems. The method exploits the solution of a linear number of bilevel problems of the nominal type.
 
+**greedy_interdiction.py**
+The _Greedy Interdiction_ heuristic proposed by Scott DeNegre in his PhD thesis (2011) applied to the Gamma-robust knapsack interdiction problem. The method determines a feasible interdiction policy in a greedy way, from which a valid upper bound for the optimal objective function value is obtained by solving the Gamma-robust lower-level problem. A lower bound is obtained from the high-point relaxation of the original interdiction problem.
+
 **help_functions.py**  
 Contains the following functions that are used in the presented branch-and-cut approaches for bilevel problems of the nominal type (see also the paper by Fischetti et al. (2019) for further details):
 * get_dominance  
@@ -146,6 +164,9 @@ Solves a parameterized refinement problem to account for an optimistic follower.
 
 **instance_data_builder.py**  
 Takes a nominal (generalized) bilevel knapsack interdiction instance and returns a robustified instance based on the uncertainty parameterization given by _conservatism_ and _uncertainty_ or _deviations_.
+
+**iterate_heuristic.py**
+The ONE-SHOT and ITERATE heuristics presented in Fischetti et al. (2018) applied to the generalized Gamma-robust knapsack interdiction problem. The method computes a bilevel-feasible pair and a valid upper bound for the optimal objective function value. A lower bound is obtained by solving the high-point relaxation of the original bilevel problem.
 
 **nominal-instance-data**  
 Contains all 280 nominal instances that are used for the computational study of the paper.
