@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import numpy as np
@@ -13,7 +15,7 @@ from gurobipy import GRB
 from time import time
 
 # Local imports
-from help_functions import *
+from src.help_functions import *
     
 def interdiction_cuts_callback(model, where):
         # Get root relaxation.
@@ -47,7 +49,7 @@ def interdiction_cuts_callback(model, where):
                     model._follower_budget
             )
 
-            # Separate a lifted cut.
+            # Generate a lifted cut.
             coef = np.multiply(model._profits, follower_var)
             set_a, set_b = lifted_cut_separation(
                     leader_var,

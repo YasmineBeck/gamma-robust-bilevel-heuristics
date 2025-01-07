@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import json
@@ -12,14 +14,14 @@ import numpy as np
 import os
 
 # Local imports
-from help_functions import solve_lower_level
-from instance_data_builder import InstanceDataBuilder
-from general_deterministic_model import GeneralDeterministicModel
+from src.help_functions import solve_lower_level
+from src.instance_data_builder import InstanceDataBuilder
+from src.general_deterministic_model import GeneralDeterministicModel
             
 def build_robustified_instance(instance_file, conservatism, uncertainty,
                                deviations, tol=1e-04):
-    # Build a robustified instance from the nominal data, the specified
-    # uncertainty, the given deviations, and the level of conservatism.
+    """Build a robustified instance from the nominal data, the specified
+    uncertainty, the given deviations, and the level of conservatism."""
     builder = InstanceDataBuilder(
         instance_file,
         conservatism=conservatism,
@@ -64,7 +66,7 @@ def build_robustified_instance(instance_file, conservatism, uncertainty,
     return instance_dict, subprobs
 
 def get_subprob_data(subprob, instance_dict):
-    # Get the data of one specific (deterministic) bilevel sub-problem.
+    """Get the data of one specific (deterministic) bilevel sub-problem."""
     subprob_data = {}
     for key in instance_dict:
         if 'profit' not in key:
@@ -73,13 +75,13 @@ def get_subprob_data(subprob, instance_dict):
     return subprob_data
 
 def solve_bilevel_subprob(subprob, subprob_data):
-    # Solve one deterministic bilevel sub-problem.
+    """Solve one deterministic bilevel sub-problem."""
     model = GeneralDeterministicModel(subprob_data)
     results_dict = model.solve()
     return results_dict
 
 def solve_follower_subprob(subprob, leader_sol, instance_dict):
-    # Solve one deterministic lower-level sub-problem.
+    """Solve one deterministic lower-level sub-problem."""
     sol, obj, node_cnt = solve_lower_level(
         leader_sol,
         instance_dict['modified profits'][subprob],
@@ -93,6 +95,7 @@ def solve_follower_subprob(subprob, leader_sol, instance_dict):
     return sol, obj
 
 def solve_gamma_robust_lower_level(leader_sol, instance_dict, subprobs):
+    """Solve a Gamma-robust lower-level sub-problem."""
     follower_sols = []
     follower_objs = []
     for subprob in subprobs:
@@ -120,6 +123,7 @@ def solve_gamma_robust_lower_level(leader_sol, instance_dict, subprobs):
 
 def check_feasibility(instance_file, conservatism, uncertainty,
                       deviations, tol=1e-04):
+    """Check for Gamma-robust feasibility."""
     instance_dict, subprobs = build_robustified_instance(
         instance_file,
         conservatism,
@@ -175,7 +179,7 @@ if __name__ == "__main__":
     deviations = None
 
     # Check whether there exists a deterministic bilevel sub-problem
-    # solved in the primal heuristic for Gamma-robust bilevel problems that
+    # solved in the heuristic for Gamma-robust bilevel problems that
     # produces a feasible point for the original problem.
     is_feasible = check_feasibility(
         instance_file,

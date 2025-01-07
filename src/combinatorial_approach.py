@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import json
@@ -103,8 +105,8 @@ class CombModel(object):
                 self.follower_weights = scaled_weights
 
     def build_instance_file(self):
-        # Build a text file with extension .ki containing 7 lines of data
-        # to give to the bkpsolver.
+        """Build a text file with extension .ki containing 7 lines of data
+        to give to the bkpsolver."""
         lines = []
 
         # First line contains the number of items.
@@ -181,7 +183,7 @@ class CombModel(object):
                     follower_decision = [int(idx) for idx in follower_str]
                     results_dict['follower decision'] = follower_decision
 
-                # Extract greeedy upper bound.
+                # Extract greedy upper bound.
                 if 'greedy_ub' in line:
                     greedy_bound = float(line.split(' ')[-1].strip())
                     # Account for scaling of profits if they are not integer.

@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import json
@@ -13,7 +15,7 @@ import numpy as np
 class InstanceDataBuilder:
     """
     Takes an instance (nominal data) of a bilevel knapsack problem with
-    interdiction constraints and return the data of the Gamma-robust variant
+    interdiction constraints and returns the data of the Gamma-robust variant
     of the problem with uncertain objective function coefficients.
     """
     def __init__(self,

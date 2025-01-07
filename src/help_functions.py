@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import numpy as np
@@ -12,7 +14,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 def get_dominance(leader_weights, follower_weights, profits):
-    # Determine the index sets for dominance inequalities.
+    """Determine the index sets for dominance inequalities."""
     size = len(leader_weights)
     idx_set_1 = []
     idx_set_2 = []
@@ -30,7 +32,7 @@ def get_dominance(leader_weights, follower_weights, profits):
 
 def lifted_cut_separation(leader_var, follower_var, profits,
                           follower_weights, tol=1e-06):
-    # Determine the sets of items for lifted cuts.
+    """Determine the sets of items for lifted cuts."""
     set_a = []
     set_b = []
     zeros = np.where(follower_var < 0.5)[0]
@@ -54,7 +56,7 @@ def lifted_cut_separation(leader_var, follower_var, profits,
     return set_a, set_b
 
 def make_maximal(var, profits, weights, budget):
-    # Complete a feasible decision to a maximal packing.
+    """Complete a feasible decision to a maximal packing."""
     size = len(var)
     residual = budget - sum(weights[idx]*var[idx] for idx in range(size))
     
@@ -76,8 +78,8 @@ def make_maximal(var, profits, weights, budget):
     return var 
 
 def solve_lower_level(leader_var, profits, weights, budget, time_limit=3600):
-    # Solve a deterministic lower-level problem that is parameterized
-    # by a given leader's decision.
+    """Solve a deterministic lower-level problem that is parameterized
+    by a given leader's decision."""
     size = len(profits)
     model = gp.Model()
     var = model.addVars(size, vtype=GRB.BINARY)
@@ -120,8 +122,8 @@ def solve_lower_level(leader_var, profits, weights, budget, time_limit=3600):
 
 def solve_refinement_problem(leader_var, costs, profits, const, weights,
                              budget, time_limit=3600):
-    # Solve the refinement problem of a lower-level sub-problem to obtain
-    # an optimistic follower's respone.
+    """Solve the refinement problem of a lower-level sub-problem to obtain
+    an optimistic follower's respone."""
     size = len(costs)
     model = gp.Model()
     var = model.addVars(size, vtype=GRB.BINARY)

@@ -1,15 +1,10 @@
-# Introduction
-The repository contains the code accompanying the paper
+# Heuristic Methods for $\Gamma$-Robust Mixed-Integer Linear Bilevel Problems
 
-&emsp; _Heuristic Methods for Gamma-Robust Mixed-Integer Linear Bilevel Problems_
+## Description  
+This repository contains the code accompanying the paper [Heuristic Methods for Gamma-Robust Mixed-Integer Linear Bilevel Problems](https://optimization-online.org/?p=26186) by Yasmine Beck, Ivana Ljubić, and Martin Schmidt.
 
-by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024)
-(to appear).
-
-# Dependencies
-The methods are implemented in Python 3.7.11 and Gurobi 11.0.0 
-is used to solve all arising optimization problems.
-Further, the following Python packages and modules are required:
+## Prerequisites  
+The methods are implemented in `Python 3.7.11` and `Gurobi 11.0.0` is used to solve all arising optimization problems. Visit [Gurobi's official website](https://www.gurobi.com/academia/academic-program-and-licenses) for details on how to obtain a license. In addition to Gurobi, the following Python packages and modules are required:
 
 * argparse
 * json
@@ -18,164 +13,111 @@ Further, the following Python packages and modules are required:
 * subprocess
 * time
 
-# Usage
-### Min-Max Problems
-Run
-    
-`python3 min_max_heuristic.py --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json`
+Moreover, the heuristics use the `bkpsolver` presented in [Weninger and Fukasawa (2023)](https://link.springer.com/chapter/10.1007/978-3-031-32726-1_31). To install the `bkpsolver`, follow the instructions at https://github.com/nwoeanhinnogaehr/bkpsolver. 
 
-to build a Gamma-robust knapsack interdiction problem and solve it heuristically by solving a linear number of knapsack interdiction problems of the nominal type.
+## Usage  
+In the following, we elaborate on how to use the exact and heuristic approaches considered in the computational study of [the paper](https://optimization-online.org/?p=26186). We distinguish between the min-max and the more general bilevel setting.  
+
+## Approaches for $\Gamma$-Robust Min-Max Problems Applied to the $\Gamma$-Robust Knapsack Interdiction Problem  
+
+### 1. Heuristics Presented in [the Paper](https://optimization-online.org/?p=26186)  
+From [the main directory](./), run
+
+```
+python3 -m src.min_max_heuristic --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json
+```
+
+to build a $\Gamma$-robust knapsack interdiction problem and solve it heuristically by solving a linear number of knapsack interdiction problems of the nominal type.
 
 #### Necessary arguments:
-**--instance_file**  
+`--instance_file`  
 The file containing the nominal instance data.
 
-**--conservatism**  
-Level of conservatism (in percent) must be between 0 and 1.
+`--conservatism`  
+Level of conservatism (in percent) must be a scalar between 0 and 1.
 
-**--output_file**  
-The file to write the output to.
+`--output_file`  
+The .json file to write the output to.
 
 and either  
 
-**--deviations**  
-The deviations for the objective function coefficients, e.g., 1 2 1 for a problem of size 3.
+`--deviations`  
+The deviations for the objective function coefficients, e.g., `1 2 1` for a problem of size 3.
 
 or  
 
-**--uncertainty**  
-Uncertainty value (in percent) must be between 0 and 1.  
+`--uncertainty`  
+Uncertainty value (in percent) must be a scalar between 0 and 1.  
 
-A detailed description of the instance data format and the uncertainty parameterization can be found below.
+A detailed description of the instance data format and the uncertainty parameterization can be found in the [data directory](data).
 
-#### Optional arguments:
-**--solver**  
-The solver to use for the solution of the problems of the nominal type. Default is the combinatorial approach (_bkp_) by Fukasawa and Weninger (2023) (details can be found at https://github.com/nwoeanhinnogaehr/bkpsolver). To use the branch-and-cut approach based on Fischetti et al. (2019), specify _ic_.
+#### Optional arguments:  
+`--solver`  
+The solver to use for the solution of the problems of the nominal type. The default is the combinatorial approach (`--solver bkp`) by [Weninger and Fukasawa (2023)](https://link.springer.com/chapter/10.1007/978-3-031-32726-1_31). To use the branch-and-cut approach based on [Fischetti et al. (2019)](https://pubsonline.informs.org/doi/10.1287/ijoc.2018.0831), specify `--solver ic`.  
 
-**--modify**  
-Use the modified variant of the heuristic in which all bilevel sub-problems are solved first (_True_) or use the variant that alternates between solving bilevel and single-level problems (_False_). Default is _False_.
+To install the `bkpsolver` by Weninger and Fukasawa (2023), follow the instructions at https://github.com/nwoeanhinnogaehr/bkpsolver. The best performance is achieved if the `bkpsolver` is located in the parent directory of this repository. Alternatively, you can modify the path to the solver in the `__init__` section of [min_max_heuristic.py](src/min_max_heuristic.py) to match its location.
 
-#### Benchmark approach:
-To apply the _Greedy Interdiction_ heuristic (cf. Algorithm 4.2 in the [PhD thesis by S. DeNegre, 2011](https://coral.ise.lehigh.edu/~ted/files/papers/ScottDeNegreDissertation11.pdf)) to the Gamma-robust knapsack interdiction problem, run
+`--modify`  
+Use the modified variant of the heuristic in which all bilevel sub-problems are solved first (`True`) or use the variant that alternates between solving bilevel and single-level problems (`False`). The default is `False`.
 
-`python3 greedy_interdiction.py --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json`
+`--time_limit`  
+The time limit in seconds. The default is 3600 seconds.
 
-As before, either _uncertainty_ or _deviations_ must be specified.
+### 2. Greedy Interdiction Heuristic  
+To apply a "Greedy Interdiction" heuristic in the spirit of the one presented in Algorithm 4.2 in the [PhD thesis by S. DeNegre](https://coral.ise.lehigh.edu/~ted/files/papers/ScottDeNegreDissertation11.pdf) to the $\Gamma$-robust knapsack interdiction problem, run
 
-<br/>  
+```
+python3 -m src.greedy_interdiction --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json
+```
 
-### General Bilevel Problems
-Run
-    
-`python3 general_heuristic.py --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json`
+from [the main directory](./) using the same arguments as specified in the necessary arguments section above.
 
-to build a generalized Gamma-robust knapsack interdiction problem and solve it heuristically by solving a linear number of generalized knapsack interdiction problems of the nominal type.
+### 3. Exact and Problem-Tailored Branch-and-Cut Approach
+To apply the exact and problem-tailored branch-and-cut approach presented in [our earlier work](https://link.springer.com/article/10.1007/s12532-023-00244-6), follow the instructions at https://github.com/YasmineBeck/gamma-robust-knapsack-interdiction-solver (DOI: 10.5281/zenodo.7965281).
+
+## Approaches for General $\Gamma$-Robust Bilevel Problems Applied to the Generalized $\Gamma$-Robust Knapsack Interdiction Problem  
+
+### 1. Heuristics Presented in [the Paper](https://optimization-online.org/?p=26186)  
+From [the main directory](./), run
+
+```
+python3 -m src.general_heuristic --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json
+```
+
+to build a generalized $\Gamma$-robust knapsack interdiction problem and solve it heuristically by solving a linear number of generalized knapsack interdiction problems of the nominal type.
 
 #### Necessary arguments:
 Same as for the min-max setting, see above.
 
 #### Optional arguments:
-**--refine**  
-Include a refinement step (_True_) to account for an optimistic follower or not (_False_). Default is _True_.
+`--refine`  
+Include a refinement step (`True`) to account for an optimistic follower or not (`False`). The default is `True`.
 
-#### Benchmark approaches:
-Run
+`--time_limit`  
+The time limit in seconds. The default is 3600 seconds.
 
-`python3 iterate_heuristic.py --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json`
+### 2. ONE-SHOT and ITERATE Heuristics  
+To apply the ITERATE heuristic presented in [Fischetti et al. (2018)](https://doi.org/10.1016/j.ejor.2017.11.043) to an instance of the generalized $\Gamma$-robust knapsack interdiction problem, run
 
-to apply the ITERATE heuristic presented in [Fischetti et al. (2018)](https://doi.org/10.1016/j.ejor.2017.11.043) to an instance of the generalized Gamma-robust knapsack interdiction problem.
+```
+python3 -m src.iterate_heuristic --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json
+```
 
-As before, either _uncertainty_ or _deviations_ must be specified. The default time limit is 3600s. You can change it using the optional argument `--time_limit TL`, where TL is given in seconds. To run the ONE-SHOT variant of the method, add the optional argument `--one_shot True`.
+from [the main directory](./) using the same arguments as specified in the necessary arguments section above. The default time limit is 3600 seconds. You can change it using the optional argument `--time_limit TL`, where TL is a scalar specifying the time limit in seconds.
 
-# Instance Format
-Nominal instance data must be given in form of a dictionary.
-For example, the nominal instance considered in Example 1 of
-Caprara et al. (2016) would be given in a simple text file containing:
+To run the ONE-SHOT variant of the method presented in [Fischetti et al. (2018)](https://doi.org/10.1016/j.ejor.2017.11.043), add the optional argument
 
-{  
-"size": 3,  
-"profits": [4, 3, 3],  
-"leader weights": [2, 1, 1],  
-"follower weights": [4, 3, 2],  
-"leader budget": 2,  
-"follower budget": 4  
-}
+```
+--one_shot True
+```
 
-The deterministic instances that are used in the computational study of the paper are included in the [nominal-instance-data](./nominal-instance-data) directory.
+### 3. Exact and Problem-Tailored Branch-and-Cut Approach
+To apply the exact and problem-tailored branch-and-cut approach outlined in [the paper](https://optimization-online.org/?p=26186), run
 
-To account for uncertain objective function coefficients, the following specifications may be used:
+```
+python3 -m src.gamma_robust_extended_model --instance_file file.txt --conservatism conservatism_value --deviations deviation_values --output_file outfile.json
+```
 
-**conservatism**  
-A value between 0 and 1 is required, which specifies the percentage that the parameter Gamma takes of the instance size. In the case of a fractional value for Gamma, the closest integer is considered.
+from [the main directory](./) using the same arguments as specified in the necessary arguments section above. The default time limit is 3600 seconds. You can change it using the optional argument `--time_limit TL`, where TL is a scalar specifying the time limit in seconds.  
 
-**uncertainty**  
-The percentage for the deviations in the objective function coefficients (all coefficients are equally perturbed). The value must be between 0 and 1.
-
-**deviations**  
-Absolute values for the deviations in the objective function coefficients.
-
-Either _uncertainty_ or _deviations_ must be specified.
-
-# Counterexample
-As discussed in the paper, the main result by Bertsimas and Sim (2003) cannot be carried over to the bilevel setting. For the case of general mixed-integer, linear, and Gamma-robust bilevel problems, it may even be the case that none of the solutions to the deterministic bilevel sub-problems solved in Line 3 of Algorithm 3 in the paper is feasible for the Gamma-robust bilevel problem. We observe this behavior for the nominal instance of size `n = 40` given in [counterexample.txt](counterexample/counterexample.txt) with the uncertainty parameterization given by `uncertainty = 0.1` and `conservatism = 0.5`. The latter implies that Gamma takes a value of 20 and all lower-level objective function coefficients are equally perturbed by 10 percent of the nominal value. In the [counterexample](./counterexample) directory, we provide the numerical results for all deterministic bilevel sub-problems that need to be solved when applying the primal heuristic for Gamma-robust bilevel problems to this instance. For example, `counterexample_20.json` contains the numerical results for the bilevel sub-problem with sub-problem index 20. To verify that indeed none of the solutions to the deterministic bilevel sub-problems solved when applying the primal heuristic is Gamma-robust feasible, simply run
-
-`python3 check_counterexample.py`.
-
-Here, for each fixed leader's decision obtained from solving a bilevel sub-problem of the nominal type, all lower-level sub-problems are solved (cf. Lemma 1 of the paper) to determine whether the pair (x,y) that is output as a solution of the bilevel sub-problem is Gamma-robust feasible. Running the above script returns the message that there is a bilevel sub-problem for which the solution is Gamma-robust feasible or, otherwise, that no such bilevel sub-problem exists.
-
-# Contents
-**check_counterexample.py**  
-This script is used to verify that there may be instances for which none of the solutions to the general deterministic bilevel sub-problems is feasible for the overall Gamma-robust bilevel problem using a specific example; see Section 4 in the paper.
-
-**counterexample**  
-Directory containing the nominal instance data of the counterexample as well as the numerical results for the general deterministic bilevel sub-problems solved using our primal heuristic. The data is used to verify that there may be instances for which none of the solutions to the sub-problems is feasible for the overall Gamma-robust bilevel problem; see Section 4 in the paper.
-
-**combinatorial_approach.py**  
-Solve a bilevel knapsack interdiction problem using the combinatorial approach (bkpsolver) by Fukasawa and Weninger (2023). To install _bkpsolver_, follow the instructions at https://github.com/nwoeanhinnogaehr/bkpsolver.
-
-**gamma_robust_extended_model.py**  
-Solves an extended formulation of the generalized Gamma-robust bilevel knapsack interdiction problem using a branch-and-cut approach. The latter exploits the ideas of Beck et al. (2023) and Fischetti et al. (2019).
-
-**general_deterministic_model.py**  
-Solves a generalized knapsack interdiction problem of the nominal type using a branch-and-cut approach that exploits the ideas of Fischetti et al. (2019).
-
-**general_heuristic.py**  
-Primal heuristic for general mixed-integer, linear, and Gamma-robust bilevel problems on the example of generalized bilevel knapsack interdiction problems. The method exploits the solution of a linear number of bilevel problems of the nominal type.
-
-**greedy_interdiction.py**  
-The _Greedy Interdiction_ heuristic proposed by Scott DeNegre in his PhD thesis (2011) applied to the Gamma-robust knapsack interdiction problem. The method determines a feasible interdiction policy in a greedy way. A valid upper bound for the optimal objective function value is obtained by solving the Gamma-robust lower-level problem, whereas a valid lower bound is obtained by solving the high-point relaxation of the original interdiction problem.
-
-**help_functions.py**  
-Contains the following functions that are used in the presented branch-and-cut approaches for bilevel problems of the nominal type (see also the paper by Fischetti et al. (2019) for further details):
-* get_dominance  
-Determines the set of items that satisfy certain dominance properties such that additional constraints on the leader's decision can be added.
-
-* lifted_cut_separation  
-Determines the set of items that satisfy the requirements for lifting interdiction cuts.
-
-* make_maximal  
-Completes a feasible decision to a maximal packing.
-
-* solve_lower_level  
-Solves a parameterized lower-level problem of the nominal type.
-
-* solve_refinement_problem  
-Solves a parameterized refinement problem to account for an optimistic follower.
-
-**instance_data_builder.py**  
-Takes a nominal (generalized) bilevel knapsack interdiction instance and returns a robustified instance based on the uncertainty parameterization given by _conservatism_ and _uncertainty_ or _deviations_.
-
-**iterate_heuristic.py**  
-The ONE-SHOT and ITERATE heuristics presented in Fischetti et al. (2018) applied to the generalized Gamma-robust knapsack interdiction problem. The method computes a bilevel-feasible pair and a valid upper bound for the optimal objective function value. A valid lower bound is obtained by solving the high-point relaxation of the original bilevel problem.
-
-**nominal-instance-data**  
-Contains all 280 nominal instances that are used for the computational study of the paper.
-
-**min_max_deterministic_model.py**  
-Solves a knapsack interdiction problem of the nominal type using a branch-and-cut approach based on Fischetti et al. (2019). In the paper, several enhancement techniques are discussed. Here, lifted interdiction cuts, maximal packings of the follower, and dominance inequalities are incorporated.
-
-**min_max_heuristic.py**  
-Primal heuristics for mixed-integer, linear, and Gamma-robust min-max problems on the example of bilevel knapsack interdiction problems. The method exploits the solution of a linear number of interdiction problems of the nominal type. For the solution of the deterministic problems, two options are available: a branch-and-cut approach based on Fischetti et al. (2019) or the combinatorial approach by Fukasawa and Weninger (2023). In addition, two variants of the heuristic are implemented: one that alternates between solving bilevel and single-level problems and one that solves all bilevel sub-problems first and, afterward, performs a correction step by solving single-level problems.
-
-**optimality_checker.py**  
-Class containing all necessary functions (compute upper bound, check ex-post conditions) to prove optimality of heuristically obtained solutions to Gamma-robust min-max problems.
+Further details on this approach can also be found in Section 3.5 of the PhD thesis by Yasmine Beck.

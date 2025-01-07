@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import argparse
@@ -15,7 +17,7 @@ import numpy as np
 from time import time
 
 # Local imports
-from instance_data_builder import InstanceDataBuilder
+from src.instance_data_builder import InstanceDataBuilder
 
 class IterateHeuristic:
     """
@@ -68,7 +70,7 @@ class IterateHeuristic:
         self.gamma = instance_data['gamma']
 
     def solve_high_point_relaxation(self):
-        # Build and solve the high-point relaxation of the bilevel problem.
+        """Build and solve the high-point relaxation of the bilevel problem."""
         model = gp.Model()
         leader_vars = model.addVars(self.size, vtype=GRB.BINARY)
         follower_vars = model.addVars(self.size, vtype=GRB.BINARY)
@@ -114,9 +116,9 @@ class IterateHeuristic:
             return None, nodes
 
     def main(self):
-        # Use the heuristic to obtain a bilevel-feasible point and
-        # an upper bound. A lower bound is obtained by solving the
-        # high-point relaxation of the bilevel problem.
+        """Use the heuristic to obtain a bilevel-feasible point and
+        an upper bound. A lower bound is obtained by solving the
+        high-point relaxation of the bilevel problem."""
         self.lb = -np.inf
         self.ub = np.inf
         self.leader_sol = None
@@ -196,7 +198,7 @@ class IterateHeuristic:
         return results_dict
 
     def build_milp_model(self):
-        # Build the initial MILP subproblem.
+        """Build the initial MILP subproblem."""
         self.model = gp.Model()
 
         # Build variables.
@@ -290,7 +292,7 @@ class IterateHeuristic:
         )
 
     def solve_subprob(self, time_limit):
-        # Solve an MILP subproblem.
+        """Solve an MILP subproblem."""
         self.model.update()
         self.model.Params.TimeLimit = time_limit
         self.model.Params.OutputFlag = False
@@ -303,8 +305,8 @@ class IterateHeuristic:
             return None, nodes
 
     def solve_lower_level(self, leader_sol, time_limit):
-        # Solve the MILP reformulation of the parameterized
-        # robustified lower-level problem.
+        """Solve the MILP reformulation of the parameterized
+        robustified lower-level problem."""
         model = gp.Model()
         follower_vars = model.addVars(self.size, vtype=GRB.BINARY)
         aux_vars = model.addVars(self.size + 1, vtype=GRB.CONTINUOUS)
@@ -352,8 +354,8 @@ class IterateHeuristic:
             return None, nodes
         
     def add_cut(self, leader_sol):
-        # Add a no-good cut to the current subproblem to separate
-        # the previous leader's decision.
+        """Add a no-good cut to the current subproblem to separate
+        the previous leader's decision."""
         ones = [idx for idx in range(self.size) if leader_sol[idx] > 0.5]
         zeros = [idx for idx in range(self.size) if leader_sol[idx] < 0.5]
 

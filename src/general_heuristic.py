@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import argparse
@@ -16,15 +18,14 @@ import os
 from time import time
 
 # Local imports
-from help_functions import solve_lower_level
-from help_functions import solve_refinement_problem
-from instance_data_builder import InstanceDataBuilder
-from general_deterministic_model import GeneralDeterministicModel
-
+from src.help_functions import solve_lower_level
+from src.help_functions import solve_refinement_problem
+from src.instance_data_builder import InstanceDataBuilder
+from src.general_deterministic_model import GeneralDeterministicModel
 
 class GeneralHeuristic:
     """
-    Class for the primal heuristic for general mixed-integer, linear
+    Class for the heuristic for general mixed-integer linear
     bilevel problems with a Gamma-robust follower.
     """
     def __init__(self,
@@ -33,12 +34,14 @@ class GeneralHeuristic:
                  conservatism,
                  uncertainty,
                  deviations,
-                 refine):
+                 refine,
+                 time_limit):
         self.instance_file = instance_file
         self.output_file = output_file
         self.conservatism = conservatism
         self.uncertainty = uncertainty
         self.deviations = deviations
+        self.time_limit = time_limit
         self.tol = 1e-06
         if not isinstance(refine, bool):
             if 'False' in refine:
@@ -66,8 +69,8 @@ class GeneralHeuristic:
             self.refined = 0
 
     def build_robustified_instance(self):
-        # Build a robustified instance from the nominal data, the specified
-        # uncertainty, the given deviations, and the level of conservatism.
+        """Build a robustified instance from the nominal data, the specified
+        uncertainty, the given deviations, and the level of conservatism."""
         builder = InstanceDataBuilder(
             self.instance_file,
             conservatism=self.conservatism,
@@ -110,7 +113,7 @@ class GeneralHeuristic:
         self.subprob_cnt = len(self.subprobs)
 
     def get_subprob_data(self, subprob):
-        # Get the data of one specific (deterministic) bilevel sub-problem.
+        """Get the data of one specific (deterministic) bilevel sub-problem."""
         subprob_data = {}
         for key in self.instance_dict:
             if 'profit' not in key:
@@ -120,8 +123,10 @@ class GeneralHeuristic:
         return subprob_data
 
     def solve_bilevel_subprob(self, subprob, subprob_data):
-        # Solve one deterministic bilevel sub-problem.
-        model = GeneralDeterministicModel(subprob_data)
+        """Solve one deterministic bilevel sub-problem."""
+        runtime = time() - self.start_time
+        remaining_time = max(self.time_limit - runtime, 0)
+        model = GeneralDeterministicModel(subprob_data, remaining_time)
         results_dict = model.solve()
         instance = os.path.splitext(os.path.basename(self.output_file))[0]
         out_file = '{}/{}_{}.json'.format(self.log_dir, instance, subprob)
@@ -130,7 +135,7 @@ class GeneralHeuristic:
         return results_dict
 
     def solve_follower_subprob(self, subprob, leader_dec):
-        # Solve one deterministic lower-level sub-problem.
+        """Solve one deterministic lower-level sub-problem."""
         timer = time()
         sol, obj, node_cnt = solve_lower_level(
             leader_dec,
@@ -144,7 +149,7 @@ class GeneralHeuristic:
         return sol, obj, node_cnt, subprob_time
     
     def extract_bilevel_times_and_nodes(self):
-        # Extract runtime and node count data of the solved bilevel problems.
+        """Extract runtime and node count data of the solved bilevel problems."""
         times = []
         nodes = 0
         for idx, subprob in enumerate(self.subprobs):
@@ -160,8 +165,8 @@ class GeneralHeuristic:
         return runtime, ideal_runtime, nodes
 
     def same_solution(self, sols):
-        # Check if the same decision is chosen in every bilevel sub-problem.
-        # Return True in the positive case, and False otherwise.
+        """Check if the same decision is chosen in every bilevel sub-problem.
+        Return True in the positive case, and False otherwise."""
         for idx in range(1, len(sols)):
             if not all(abs(sol1 - sol2) < self.tol
                        for sol1, sol2 in zip(sols[0], sols[idx])):
@@ -169,10 +174,10 @@ class GeneralHeuristic:
         return True
 
     def check_dominance(self, follower_decs):
-        # Check whether the dominance properties regarding the objective
-        # function values in Theorem 5 are satisifed.
-        # In the positive case, we return True, an optimal follower's
-        # decision and the index of the "best" sub-problem.
+        """Check whether the dominance properties regarding the objective
+        function values in Theorem 5 are satisifed.
+        In the positive case, we return True, an optimal follower's
+        decision and the index of the "best" sub-problem."""
         ul_vals = []
         ll_vals = []
         for subprob_idx, subprob in enumerate(self.subprobs):
@@ -210,8 +215,8 @@ class GeneralHeuristic:
         return False, None, None
 
     def compute_follower_value(self, subprob, sol):
-        # Compute the objective function value of a lower-level
-        # sub-problem for a given follower's decision.
+        """Compute the objective function value of a lower-level
+        sub-problem for a given follower's decision."""
         size = self.instance_dict['size']
         gamma = self.instance_dict['gamma']
         deviation = self.instance_dict['deviations'][subprob]
@@ -221,16 +226,16 @@ class GeneralHeuristic:
         return val
 
     def compute_follower_costs(self, sol):
-        # Compute the upper-level objective term depending on a given
-        # follower's decision (follower's costs).
+        """Compute the upper-level objective term depending on a given
+        follower's decision (follower's costs)."""
         size = self.instance_dict['size']
         val = sum(self.instance_dict['follower costs'][idx]*sol[idx]
                   for idx in range(size))
         return val
 
     def correct_and_refine(self, subprob_idx, leader_decs, follower_decs):
-        # Compute a follower's response (optimistic approach) for a
-        # given leader's decision.
+        """Compute a follower's response (optimistic approach) for a
+        given leader's decision."""
         fix_subprob = self.subprobs[subprob_idx]
         fix_subprob_val = self.compute_follower_value(
             fix_subprob,
@@ -332,8 +337,8 @@ class GeneralHeuristic:
         return new_follower_decs[best_idx], ul_objs[best_idx], rob_val
     
     def main(self):
-        # Solve all bilevel sub-problems and, afterward, solve
-        # lower-level sub-problems.
+        """Solve all bilevel sub-problems and, afterward, solve
+        lower-level sub-problems."""
         lb = -np.inf
         ub = np.inf
         leader_sol = None
@@ -341,7 +346,7 @@ class GeneralHeuristic:
         objs = []
         leader_decs = []
         follower_decs = []
-        start_time = time()
+        self.start_time = time()
         
         # Solve all bilevel sub-problems.
         for subprob in self.subprobs:
@@ -432,7 +437,7 @@ class GeneralHeuristic:
                 results_dict['status'] = 'feasible'
             
         # Extract runtime results.
-        runtime = time() - start_time
+        runtime = time() - self.start_time
         results_dict['runtime'] = runtime
         bilevel_time, ideal_bilevel_time, nodes\
             = self.extract_bilevel_times_and_nodes()
@@ -466,6 +471,8 @@ if __name__ == '__main__':
                         help='Uncertainty (in percent) must be between 0 and 1.')
     parser.add_argument('--deviations', nargs='+', type=float, default=None,
                         help='The deviations, e.g., 1 2 1 for a problem of size 3.')
+    parser.add_argument('--time_limit', type=float, default=3600,
+                        help='The time limit (in s). Default is 3600s.')
     parser.add_argument('--output_file', required=True,
                         help='The file to write the output to.')
     parser.add_argument('--refine', default='True',
@@ -476,6 +483,7 @@ if __name__ == '__main__':
     conservatism = arguments.conservatism
     uncertainty = arguments.uncertainty
     deviations = arguments.deviations
+    time_limit = arguments.time_limit
     output_file = arguments.output_file
     refine = arguments.refine
 
@@ -485,7 +493,8 @@ if __name__ == '__main__':
         conservatism,
         uncertainty,
         deviations,
-        refine
+        refine,
+        time_limit
     )
     results_dict = model.main()
 

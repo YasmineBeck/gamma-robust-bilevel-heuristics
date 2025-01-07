@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import argparse
@@ -15,15 +17,15 @@ import subprocess
 from time import time
 
 # Local imports
-from combinatorial_approach import CombModel
-from min_max_deterministic_model import DeterministicModel
-from help_functions import solve_lower_level
-from instance_data_builder import InstanceDataBuilder
-from optimality_checker import OptimalityChecker
+from src.combinatorial_approach import CombModel
+from src.min_max_deterministic_model import DeterministicModel
+from src.help_functions import solve_lower_level
+from src.instance_data_builder import InstanceDataBuilder
+from src.optimality_checker import OptimalityChecker
 
 class MinMaxHeuristic:
     """
-    Class for the primal heuristic for mixed-integer, linear
+    Class for the heuristic for mixed-integer linear
     min-max problems with a Gamma-robust follower.
     """
     def __init__(self,
@@ -32,12 +34,14 @@ class MinMaxHeuristic:
                  conservatism,
                  uncertainty,
                  deviations,
-                 solver):
+                 solver,
+                 time_limit):
         self.instance_file = instance_file
         self.output_file = output_file
         self.conservatism = conservatism
         self.uncertainty = uncertainty
         self.deviations = deviations
+        self.time_limit = time_limit
         self.tol = 1e-06
 
         # Two options for the solution of the deterministic bilevel problems:
@@ -69,8 +73,8 @@ class MinMaxHeuristic:
         self.build_robustified_instance()
                     
     def build_robustified_instance(self):
-        # Build a robustified instance from the nominal data, the specified
-        # uncertainty, the given deviations, and the level of conservatism.
+        """Build a robustified instance from the nominal data, the specified
+        uncertainty, the given deviations, and the level of conservatism."""
         builder = InstanceDataBuilder(
             self.instance_file,
             conservatism=self.conservatism,
@@ -113,7 +117,7 @@ class MinMaxHeuristic:
         self.subprob_cnt = len(self.subprobs)
 
     def get_subprob_data(self, subprob):
-        # Get the data of one specific (deterministic) bilevel sub-problem.
+        """Get the data of one specific (deterministic) bilevel sub-problem."""
         subprob_data = {}
         for key in self.instance_dict:
             if 'profit' not in key:
@@ -123,9 +127,9 @@ class MinMaxHeuristic:
         return subprob_data
 
     def presolve(self, subprob_data):
-        # Eliminate items 1) due to negative (modified) profits and
-        # 2) for which the associated weight exceeds the budget;
-        # see Pisinger and Toth (1998).
+        """Eliminate items 1) due to negative (modified) profits and
+        2) for which the associated weight exceeds the budget;
+        see Pisinger and Toth (1998)."""
         size = subprob_data['size']
         profits = subprob_data['profits']
         ll_weights = subprob_data['follower weights']
@@ -151,7 +155,7 @@ class MinMaxHeuristic:
         return subprob_data, fix_leader, fix_both
 
     def get_file_paths(self, subprob):
-        # Generate the paths to the instance data and the output files.
+        """Generate the paths to the instance data and the output files."""
         instance_dir = os.path.dirname(os.path.abspath(self.instance_file))
         instance = os.path.splitext(os.path.basename(self.output_file))[0]
         data_file = '{}/{}_{}.ki'.format(instance_dir, instance, subprob)
@@ -168,7 +172,7 @@ class MinMaxHeuristic:
         return data_file, log_file, out_file
 
     def solve_subprob(self, subprob, subprob_data, fix_leader):
-        # Solve one deterministic bilevel sub-problem.
+        """Solve one deterministic bilevel sub-problem."""
         data_file, log_file, out_file = self.get_file_paths(subprob)
         if subprob_data['size'] < 1:
             # The problem has already been solved during presolve.
@@ -210,17 +214,20 @@ class MinMaxHeuristic:
                 print('Requirements of BKP violated, using IC instead.')
                 self.solver = 'ic'
                 data_file, log_file, out_file = self.get_file_paths(subprob)
-                
+
+            runtime = time() - self.start_time
+            remaining_time = max(self.time_limit - runtime, 0)
             if self.solver == 'bkp':
                 model = CombModel(
                     self.path_to_bkpsolver,
                     data_file,
                     log_file,
-                    subprob_data
+                    subprob_data,
+                    remaining_time
                 )
                 results_dict = model.run()
             else:
-                model = DeterministicModel(subprob_data)
+                model = DeterministicModel(subprob_data, remaining_time)
                 results_dict = model.solve()
 
         # Adapt objective values: add constant term from robustification.
@@ -237,7 +244,7 @@ class MinMaxHeuristic:
         return results_dict
 
     def extract_time_and_nodes(self, max_subprob_idx, nodes_lst):
-        # Extract runtime and node count data.
+        """Extract runtime and node count data."""
         times = []
         # Get the number of nodes considered for solving lower-level problems.
         nodes = sum(cnt for cnt in nodes_lst if cnt is not None)
@@ -254,8 +261,8 @@ class MinMaxHeuristic:
         return runtime, ideal_runtime, nodes
 
     def extract_solution(self, subprob, presolved):
-        # Extract the solution and the optimal objective function value of
-        # a specific bilevel sub-problem.
+        """Extract the solution and the optimal objective function value of
+        a specific bilevel sub-problem."""
         data_file, log_file, out_file = self.get_file_paths(subprob)
         results_file = open(out_file,)
         results_dict = json.load(results_file)
@@ -282,7 +289,7 @@ class MinMaxHeuristic:
             return None, -np.inf
         
     def alternating_heuristic(self):
-        # Alternate between solving bilevel and lower-level problems.
+        """Alternate between solving bilevel and lower-level problems."""
         single_level_times = []
         ideal_single_level_times = []
         sols = []
@@ -291,7 +298,7 @@ class MinMaxHeuristic:
         lb = -np.inf
         ub = np.inf
         idx = 0
-        start_time = time()
+        self.start_time = time()
         while idx < self.subprob_cnt:
             # Solve a bilevel sub-problem.
             subprob = self.subprobs[idx]
@@ -303,7 +310,7 @@ class MinMaxHeuristic:
             if raw_results_dict is None:
                 # The bilevel sub-problem could not be solved.
                 idx += 1
-                continue
+                break
             
             subprob_sol, subprob_obj\
                 = self.extract_solution(subprob, fix_both)
@@ -311,7 +318,7 @@ class MinMaxHeuristic:
             if subprob_sol is None:
                 # The bilevel sub-problem could not be solved.
                 idx += 1
-                continue
+                break
             
             # Update the lower bound.
             lb = max(lb, subprob_obj)
@@ -355,7 +362,7 @@ class MinMaxHeuristic:
             else:
                 idx += 1
 
-        if abs(gap) > self.tol:
+        if abs(gap) > self.tol and len(sols) == self.subprob_cnt:
             # Check for a dominating solution.
             dom_sol, dominating = checker.dominating_solution(sols)
             if dominating:
@@ -363,7 +370,7 @@ class MinMaxHeuristic:
                 gap = 0.0
                 ub = lb
             
-        runtime = time() - start_time
+        runtime = time() - self.start_time
         single_level_time = sum(single_level_times)
         ideal_single_level_time = sum(ideal_single_level_times)
 
@@ -399,11 +406,12 @@ class MinMaxHeuristic:
         return results_dict
     
     def modified_heuristic(self):
-        # Solve all bilevel sub-problems and, afterward,
-        # perform a correction step by solving lower-level sub-problems.
+        """Solve all bilevel sub-problems and, afterward,
+        perform a correction step by solving lower-level sub-problems."""
         sols = []
         objs = []
-        start_time = time()
+        solved_subprobs = []
+        self.start_time = time()
         
         # Solve all bilevel sub-problems.
         for subprob in self.subprobs:
@@ -414,33 +422,32 @@ class MinMaxHeuristic:
 
             if raw_results_dict is None:
                 # The bilevel sub-problem could not be solved.
-                idx += 1
                 continue
             
             sol, obj = self.extract_solution(subprob, fix_both)
             
             if sol is None:
                 # The bilevel sub-problem could not be solved.
-                idx += 1
                 continue
             
+            solved_subprobs.append(subprob)
             sols.append(sol)
             objs.append(obj)
-
+            
         if objs:
             # Update the lower bound.
             lb = max(objs)
 
             # Check for ex-post optimality and compute an upper bound.
             optimality_check_timer = time()
-            checker = OptimalityChecker(self.instance_dict, self.subprobs)
+            checker = OptimalityChecker(self.instance_dict, solved_subprobs)
             check_dict = checker.ex_post_checks(sols, objs, lb)
             optimality_check_time = time() - optimality_check_timer
         else:
             # None of the bilevel sub-problems has been solved.
             optimality_check_time = 0
             
-        runtime = time() - start_time
+        runtime = time() - self.start_time
 
         # Extract results.
         results_dict = {}
@@ -480,6 +487,8 @@ if __name__ == '__main__':
                         help='Uncertainty (in percent) must be between 0 and 1.')
     parser.add_argument('--deviations', nargs='+', type=float, default=None,
                         help='The deviations, e.g., 1 2 1 for a problem of size 3.')
+    parser.add_argument('--time_limit', type=float, default=3600,
+                        help='The time limit (in s). Default is 3600s.')
     parser.add_argument('--solver', default='bkp', help='The solver to be used: "bkp" or "ic".')
     parser.add_argument('--output_file', required=True,
                         help='The file to write the output to.')
@@ -491,6 +500,7 @@ if __name__ == '__main__':
     conservatism = arguments.conservatism
     uncertainty = arguments.uncertainty
     deviations = arguments.deviations
+    time_limit = arguments.time_limit
     solver = arguments.solver
     output_file = arguments.output_file
     modify = arguments.modify
@@ -504,7 +514,8 @@ if __name__ == '__main__':
         conservatism,
         uncertainty,
         deviations,
-        solver
+        solver,
+        time_limit
     )
 
     if 'True' in modify:

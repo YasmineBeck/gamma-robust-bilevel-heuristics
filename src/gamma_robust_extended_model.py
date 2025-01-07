@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import argparse
@@ -14,12 +16,12 @@ import gurobipy as gp
 from gurobipy import GRB
 
 # Local imports
-from instance_data_builder import InstanceDataBuilder
+from src.instance_data_builder import InstanceDataBuilder
 
 def solve_extended_follower(leader_vars, gamma, profits, deviations,
                             weights, budget):
-    # Solve the extended lower-level problem that is parameterized in
-    # a given leader's decision.
+    """Solve the extended lower-level problem that is parameterized in
+    a given leader's decision."""
     size = len(profits)   
 
     model = gp.Model()
@@ -126,7 +128,7 @@ class GammaRobustExtendedModel:
                  conservatism,
                  uncertainty,
                  deviations,
-                 time_limit=3600):
+                 time_limit):
         self.instance_file = instance_file
         self.conservatism = conservatism
         self.uncertainty = uncertainty
@@ -138,8 +140,8 @@ class GammaRobustExtendedModel:
         self.build_robustified_instance()
 
     def build_robustified_instance(self):
-        # Build a robustified instance from the nominal data, the specified
-        # uncertainty, the given deviations, and the level of conservatism.
+        """Build a robustified instance from the nominal data, the specified
+        uncertainty, the given deviations, and the level of conservatism."""
         builder = InstanceDataBuilder(
             self.instance_file,
             conservatism=self.conservatism,
@@ -263,6 +265,8 @@ if __name__ == "__main__":
                         help='Uncertainty (in percent) must be between 0 and 1.')
     parser.add_argument('--deviations', nargs='+', type=float, default=None,
                         help='The deviations, e.g., 1 2 1 for a problem of size 3.')
+    parser.add_argument('--time_limit', type=float, default=3600,
+                        help='The time limit (in s). Default is 3600s.')
     parser.add_argument('--output_file', required=True,
                         help='The file to write the output to.')
     arguments = parser.parse_args()
@@ -271,13 +275,15 @@ if __name__ == "__main__":
     conservatism = arguments.conservatism
     uncertainty = arguments.uncertainty
     deviations = arguments.deviations
+    time_limit = arguments.time_limit
     output_file = arguments.output_file
 
     model = GammaRobustExtendedModel(
         instance_file,
         conservatism,
         uncertainty,
-        deviations
+        deviations,
+        time_limit
     )
     results_dict = model.main()
     

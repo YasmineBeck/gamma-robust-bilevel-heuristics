@@ -1,17 +1,19 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import numpy as np
 from time import time
 
 # Local imports
-from help_functions import solve_lower_level
+from src.help_functions import solve_lower_level
 
 class OptimalityChecker:
     """
@@ -38,10 +40,10 @@ class OptimalityChecker:
         return sol, obj, node_cnt, subprob_time
         
     def compute_upper_bound(self, leader_sol, excluded_subprob):
-        # Solve all lower-level sub-problems parameterized in the
-        # current fixed leader's decision (except for the one already
-        # considered while solving the corresponding bilevel sub-problem;
-        # see Remark 2).
+        """Solve all lower-level sub-problems parameterized in the
+        current fixed leader's decision (except for the one already
+        considered while solving the corresponding bilevel sub-problem;
+        see Remark 3)."""
         try:
             times = []
             node_lst = []
@@ -62,8 +64,8 @@ class OptimalityChecker:
         return max_obj, nodes, times
 
     def ex_post_checks(self, sols, objs, lb):
-        # Determine all sub-problems that yield the maximal objective
-        # function value.
+        """Determine all sub-problems that yield the maximal objective
+        function value."""
         best_idxs = [idx for idx in range(self.subprob_cnt)
                      if abs(lb - objs[idx]) < self.tol]
         
@@ -195,9 +197,9 @@ class OptimalityChecker:
         return check_dict
         
     def same_solution(self, sols):
-        # Check whether the leader plays the same decision in every
-        # bilevel sub-problem. Return True in the positive case, and
-        # False otherwise.
+        """Check whether the leader plays the same decision in every
+        bilevel sub-problem. Return True in the positive case, and
+        False otherwise."""
         for idx in range(1, len(sols)):
             if not all(abs(sol1 - sol2) < self.tol
                        for sol1, sol2 in zip(sols[0], sols[idx])):
@@ -205,9 +207,9 @@ class OptimalityChecker:
         return True
 
     def dominating_solution(self, sols):
-        # Check whether there is a leader decision that dominates all
-        # sub-problem solutions. Return True in the positive case, and
-        # False otherwise.
+        """Check whether there is a leader decision that dominates all
+        sub-problem solutions. Return True in the positive case, and
+        False otherwise."""
         new_sol = sols[0].copy()
         dominating = True
         for idx in range(1, len(sols)):
@@ -217,8 +219,8 @@ class OptimalityChecker:
         return new_sol, dominating
 
     def complete_solution(self, sol1, sol2):
-        # Check whether sol1 can be completed to a solution that dominates
-        # sol2. Return True in the positive case, and False otherwise.
+        """Check whether sol1 can be completed to a solution that dominates
+        sol2. Return True in the positive case, and False otherwise."""
         size = len(sol1)
         new_sol1 = sol1.copy()
         zeros = [idx for idx in range(size) if sol1[idx] < 0.5]
@@ -237,9 +239,9 @@ class OptimalityChecker:
         return new_sol1, True
 
     def is_dominated(self, new_sol, sols):
-        # Check whether one of the solutions given by sols can be completed
-        # such that it dominates new_sol. Return True in the positive case,
-        # and False otherwise.
+        """Check whether one of the solutions given by sols can be completed
+        such that it dominates new_sol. Return True in the positive case,
+        and False otherwise."""
         for sol in sols:
             dom_sol, dominating = self.complete_solution(sol, new_sol)
             if dominating:

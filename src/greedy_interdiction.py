@@ -1,10 +1,12 @@
-# This file is part of the code used for the computational study
-# in the paper
-#
-#     "Heuristic Methods for Gamma-Robust Mixed-Integer Linear
-#      Bilevel Problems"
-#
-# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2024).
+##################################################################
+# This file is part of the code used for the computational study #
+# in the paper                                                   #
+#                                                                #
+#  "Heuristic Methods for Gamma-Robust Mixed-Integer Linear      #
+#   Bilevel Problems"                                            #
+#                                                                #
+# by Yasmine Beck, Ivana Ljubic, and Martin Schmidt (2025).      #
+##################################################################
 
 # Global imports
 import argparse
@@ -13,8 +15,8 @@ import numpy as np
 from time import time
 
 # Local imports
-from instance_data_builder import InstanceDataBuilder
-from help_functions import solve_lower_level
+from src.instance_data_builder import InstanceDataBuilder
+from src.help_functions import solve_lower_level
 
 class GreedyInterdiction:
     """
@@ -40,9 +42,9 @@ class GreedyInterdiction:
         self.build_robustified_instance()
 
     def build_robustified_instance(self):
-        # Build a robustified instance from the nominal data,
-        # the specified uncertainty, the given deviations, and
-        # the level of conservatism.
+        """Build a robustified instance from the nominal data,
+        the specified uncertainty, the given deviations, and
+        the level of conservatism."""
         builder = InstanceDataBuilder(
             self.instance_file,
             conservatism=self.conservatism,
@@ -85,8 +87,8 @@ class GreedyInterdiction:
         self.subprob_cnt = len(self.subprobs)
 
     def get_lower_bound(self):
-        # Determine a lower bound for the optimal objective
-        # function value ("solve" the high-point relaxation).
+        """Determine a lower bound for the optimal objective
+        function value ("solve" the high-point relaxation)."""
         size = self.instance_dict['size']
         gamma = self.instance_dict['gamma']
         devs = self.instance_dict['deviations']
@@ -100,8 +102,8 @@ class GreedyInterdiction:
                 self.lb = lb
 
     def get_upper_bound(self):
-        # Determine a feasible interdiction policy and an
-        # upper bound for the optimal objective function value.
+        """Determine a feasible interdiction policy and an
+        upper bound for the optimal objective function value."""
         self.sol = self.get_greedy_interdiction()
         weights = self.instance_dict['follower weights']
         budget = self.instance_dict['follower budget']
@@ -129,8 +131,8 @@ class GreedyInterdiction:
         self.ub = max(objs)
 
     def get_greedy_interdiction(self):
-        # Determine an interdiction policy in a greedy way;
-        # cf. Algorithm 4.2 in the PhD thesis by S. DeNegre.
+        """Determine an interdiction policy in a greedy way;
+        cf. Algorithm 4.2 in the PhD thesis by S. DeNegre."""
         size = self.instance_dict['size']
         weights = self.instance_dict['leader weights']
         budget = self.instance_dict['leader budget']
@@ -154,7 +156,7 @@ class GreedyInterdiction:
         return var
     
     def main(self):
-        # Run the greedy heuristic.
+        """Run the greedy heuristic."""
         start_time = time()
         self.get_lower_bound()
         self.get_upper_bound()
