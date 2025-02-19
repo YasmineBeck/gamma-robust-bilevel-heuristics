@@ -120,4 +120,4 @@ python3 -m src.gamma_robust_extended_model --instance_file file.txt --conservati
 
 from [the main directory](./) using the same arguments as specified in the necessary arguments section above. The default time limit is 3600 seconds. You can change it using the optional argument `--time_limit TL`, where TL is a scalar specifying the time limit in seconds.  
 
-Further details on this approach can also be found in Section 3.5 of the PhD thesis by Yasmine Beck.
+Further details on this approach can also be found in Section 3.5 of [the PhD thesis by Yasmine Beck](https://ubt.opus.hbz-nrw.de/frontdoor/index/index/docId/2432).
